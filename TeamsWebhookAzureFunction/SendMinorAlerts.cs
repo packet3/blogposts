@@ -49,7 +49,7 @@ namespace AzureAlerts
             var isDevelopment = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "development", StringComparison.InvariantCultureIgnoreCase);
             if (isDevelopment)
             {
-                client = new SecretClient(vaultUri: new Uri("https://kclkeyjoetest.vault.azure.net"), credential: new VisualStudioCredential());
+                client = new SecretClient(vaultUri: new Uri("https://keyvaultname.vault.azure.net"), credential: new VisualStudioCredential());
 
                 var storageConnectionKey = client.GetSecretAsync("AzureAlertsStorageAccount").Result;
                 var teamsWebHook = client.GetSecretAsync("TeamsWebhook").Result;
