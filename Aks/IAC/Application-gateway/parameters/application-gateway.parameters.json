@@ -1,0 +1,117 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appGatewayName": {
+            "value": "APPLICATION_GATEWAY_NAME"
+        },
+        "location": {
+            "value": "uksouth"
+        },
+        "resourceTags": {
+            "value": {
+                "Environment": "DEV",
+                "Application": "TESTING",
+                "Tier": "3",
+                "Department": "JOE"
+            }
+        },
+        "identityType": {
+            "value": "UserAssigned"
+        },
+        "userAssignedIdentities": {
+            "value": {
+                "USER_ASSIGNED_MANAGED_ID": {}
+            }
+        },
+        "zones": {
+            "value": [
+                "1"
+            ]
+        },
+        "appGatewaySkuName": {
+            "value": "WAF_v2"
+        },
+        "appGatewaySkuTier": {
+            "value": "WAF_v2"
+        },
+        "autoScaleMax": {
+            "value": 2
+        },
+        "autoScaleMin": {
+            "value": 0
+        },
+        "backendAddressPools": {
+            "value": [
+                {
+                    "name": "agw-bep-sbx-aks",
+                    "properties": {
+                        "backendAddresses": []
+                    }
+                }
+            ]
+        },
+        "backendHttpSettingsCollections": {
+            "value": []
+        },
+        "frontendIPConfigurations": {
+            "value": [
+                {
+                    "name": "agw-pub-feip",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "publicIPAddress": {
+                            "id": "FRONT_END_IP_RESOURCE_ID"
+                        }
+                    }
+                }
+            ]
+        },
+        "frontendPorts": {
+            "value": [
+                {
+                    "name": "agw-fep-80",
+                    "properties": {
+                        "port": 80
+                    }
+                },
+                {
+                    "name": "agw-fep-443",
+                    "properties": {
+                        "port": 443
+                    }
+                }
+            ]
+        },
+        "gatewayIPConfigurationName": {
+            "value": "agw-ipc"
+        },
+        "gatewayIPConfigurationSubnetID": {
+            "value": "GATEWAY_SUBNET_ID"
+        },
+        "sslPolicyType": {
+            "value": "Custom"
+        },
+        "minProtocolVersion": {
+            "value": "TLSv1_2"
+        },
+        "cipherSuites": {
+            "value": [
+                "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+            ]
+        },
+        "webapplicationfirewallConfigurationProperties": {
+            "value": {
+                "enabled": true,
+                "firewallMode": "Detection",
+                "ruleSetType": "OWASP",
+                "ruleSetVersion": "3.2",
+                "disabledRuleGroups": [],
+                "maxRequestBodySizeInKb": 128,
+                "fileUploadLimitInMb": 100
+            }
+        }
+    }
+}

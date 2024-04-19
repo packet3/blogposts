@@ -1,0 +1,140 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "wafPolicyName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of WAF Policy"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of WAF Policy"
+            }
+        },
+        "resourceTags": {
+            "type": "object",
+            "metadata": {
+                "description": "Resource tags for deployed resources."
+            }
+        },
+        "customRules": {
+            "type": "array",
+            "metadata": {
+                "description": "Properties of Custom Rules"
+            }
+        },
+        "exclusions": {
+            "type": "array",
+            "metadata": {
+                "description": "Properties of Managed Rule Exclusions"
+            }
+        },
+        "ruleGroupOverrides": {
+            "type": "array",
+            "metadata": {
+                "description": "Properties of Rule Group Overrides"
+            }
+        },
+        "ruleSetType": {
+            "type": "string",
+            "metadata": {
+                "description": "Rule Set Type"
+            }
+        },
+        "ruleSetVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Rule Set Version"
+            }
+        },
+        "fileUploadLimitInMb": {
+            "type": "int",
+            "metadata": {
+                "description": "File Size Upload Limit"
+            }
+        },
+        "maxRequestBodySizeInKb": {
+            "type": "int",
+            "metadata": {
+                "description": "Maximum Request Body Size"
+            }
+        },
+        "mode": {
+            "type": "string",
+            "allowedValues": [
+                "Detection",
+                "Prevention"
+            ],
+            "metadata": {
+                "description": "Policy Mode"
+            }
+        },
+        "requestBodyCheck": {
+            "type": "bool",
+            "metadata": {
+                "description": "Toggles Request Body Check"
+            }
+        },
+        "state": {
+            "type": "string",
+            "allowedValues": [
+                "Disabled",
+                "Enabled"
+            ],
+            "metadata": {
+                "description": "Defines State Of Policy"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+            "apiVersion": "2022-07-01",
+            "name": "[parameters('wafPolicyName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "copy": [
+                    {
+                        "name": "customRules",
+                        "count": "[length(parameters('customRules'))]",
+                        "input": "[parameters('customRules')[copyIndex('customRules')]]"
+                    }
+                ],
+                "managedRules": {
+                    "copy": [
+                        {
+                            "name": "exclusions",
+                            "count": "[length(parameters('exclusions'))]",
+                            "input": "[parameters('exclusions')[copyIndex('exclusions')]]"
+                        }
+                    ],
+                    "managedRuleSets": [
+                        {
+                            "copy": [
+                                {
+                                    "name": "ruleGroupOverrides",
+                                    "count": "[length(parameters('ruleGroupOverrides'))]",
+                                    "input": "[parameters('ruleGroupOverrides')[copyIndex('ruleGroupOverrides')]]"
+                                }
+                            ],
+                            "ruleSetType": "[parameters('ruleSetType')]",
+                            "ruleSetVersion": "[parameters('ruleSetVersion')]"
+                        }
+                    ]
+                },
+                "policySettings": {
+                    "fileUploadLimitInMb": "[parameters('fileUploadLimitInMb')]",
+                    "maxRequestBodySizeInKb": "[parameters('maxRequestBodySizeInKb')]",
+                    "mode": "[parameters('mode')]",
+                    "requestBodyCheck": "[parameters('requestBodyCheck')]",
+                    "state": "[parameters('state')]"
+                }
+            }
+        }
+    ]
+}

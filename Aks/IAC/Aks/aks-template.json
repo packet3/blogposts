@@ -1,0 +1,427 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "managedClusterName": {
+            "defaultValue": "AKS_CLUSTER_NAME_GOES_HERE",
+            "type": "String"
+        },
+        "clusterRGName": {
+            "defaultValue": "AKS_CLUSTER_RESOURCE_GROUP_NAME",
+            "type": "String"
+        },
+        "agentVMSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "allowedValues": [
+                //https://learn.microsoft.com/en-us/azure/aks/quotas-skus-regions#cluster-configuration-presets-in-the-azure-portal
+                //Production Standard
+                "Standard_D8ds_v5",
+                //Dev/Test
+                "Standard_DS2_v2",
+                //Production Economy
+                "Standard_D8ds_v5",
+                //Production Enterprise
+                "Standard_D16ds_v5"
+            ],
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "osDiskSizeGB": {
+            "type": "int",
+            "defaultValue": 0,
+            "maxValue": 1023,
+            "minValue": 0,
+            "metadata": {
+                "description": "Disk size (in GB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+            }
+        },
+        "agentCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "maxValue": 2,
+            "minValue": 1,
+            "metadata": {
+                "description": "The number of nodes for the cluster."
+            }
+        },
+        "networkPlugin": {
+            "defaultValue": "azure",
+            "type": "string",
+            "allowedValues": [
+                "azure",
+                "kubenet"
+            ],
+            "metadata": {
+                "description": "Network plugin used for building Kubernetes network."
+            }
+        },
+        "clusterTags": {
+            "defaultValue": {},
+            "type": "object",
+            "metadata": {
+                "description": "Specifies the tags of the AKS cluster."
+            }
+        },
+        "clusterSku": {
+            "defaultValue": {
+                "name": "Base",
+                "tier": "Standard"
+                //can also have tier set to be 'Free'
+            },
+
+            "type": "object",
+            "metadata": {
+                "descirption": "The managed cluster SKU tier."
+            }
+        },
+
+
+        "loadBalancerSku": {
+            "defaultValue": "Standard",
+            "type": "string",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "metadata": {
+                "description": "Specifies the sku of the load balancer used by the virtual machine scale sets used by node pools."
+            }
+        },
+
+        "networkPolicy": {
+            "defaultValue": "azure",
+            "type": "string",
+            "metadata": {
+                "description": "Network policy used for building Kubernetes network."
+            }
+        },
+
+        "serviceCidr": {
+            "defaultValue": "172.16.0.0/22",
+            "type": "string",
+            "metadata": {
+                "description": "A CIDR notation IP range from which to assign service cluster IPs."
+            }
+        },
+        "dnsServiceIP": {
+            "defaultValue": "172.16.0.10",
+            "type": "string",
+            "metadata": {
+                "description": "Containers DNS server IP address."
+            }
+        },
+        "vnetResourceGroup": {
+            "defaultValue": "VNET_RG_NAME_GOES_HERE",
+            "type": "string",
+            "metadata": {
+                "description": "Resource GB of VNET."
+            }
+        },
+        "vnetSubscriptionId": {
+            "defaultValue": "VNET_SUBSCRIPTION_ID_GOES_HERE",
+            "type": "string",
+            "metadata": {
+                "description": "Subscription ID of Vnet RG"
+            }
+        },
+        "vnetName": {
+            "defaultValue": "VNET_NAME_GOES_HERE",
+            "type": "string",
+            "metadata": {
+                "description": "Name Of Vnet for AKS"
+            }
+        },
+        "outboundType": {
+            "defaultValue": "loadBalancer",
+            "type": "string",
+            "metadata": {
+                "description": "Name Of Vnet for AKS"
+            }
+        },
+        "userAssignedManagedIdentityName": {
+            "defaultValue": "YOUR_USER_ASSIGNED_IDENTITY_NAME_HERE",
+            "type": "string",
+            "metadata": {
+                "description": "Name Of Vnet for AKS"
+            }
+        },
+        "entraIdTenant": {
+            "defaultValue": "YOUR_ENTRA_ID_TENANT_ID",
+            "type": "string",
+            "metadata": {
+                "description": "Entra ID Tenant ID"
+            }
+        },
+
+        "systemNodePoolName": {
+            "defaultValue": "system",
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the unique name of of the system node pool profile in the context of the subscription and resource group."
+            }
+        },
+
+
+
+
+        "systemNodePoolNodeLabels": {
+            "defaultValue": {},
+            "type": "object",
+            "metadata": {
+                "description": "Specifies the Agent pool node labels to be persisted across all nodes in the system node pool."
+            }
+        },
+        "systemNodePoolNodeTaints": {
+            "defaultValue": [],
+            "type": "array",
+            "metadata": {
+                "description": "Specifies the taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule. - string"
+            }
+        },
+
+        "userNodePoolName": {
+            "defaultValue": "user",
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the unique name of of the user node pool profile in the context of the subscription and resource group."
+            }
+        },
+
+
+
+
+        "userNodePoolNodeLabels": {
+            "defaultValue": {},
+            "type": "object",
+            "metadata": {
+                "description": "Specifies the Agent pool node labels to be persisted across all nodes in the user node pool."
+            }
+        },
+        "userNodePoolNodeTaints": {
+            "defaultValue": [],
+            "type": "array",
+            "metadata": {
+                "description": "Specifies the taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule. - string"
+            }
+        },
+        "aksClusterAdminUsername": {
+            "defaultValue": "CLUSTER_ADMIN_USERNAME_HERE",
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the administrator username of Linux virtual machines."
+            }
+        },
+        "aksClusterSshPublicKey": {
+            "defaultValue": "SSH_PUBLIC_KEY",
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the SSH RSA public key string for the Linux nodes."
+            }
+        },
+        "applicationGatewayName": {
+            "type": "string",
+            "defaultValue": "NAME_OF_YOUR_APPLICATION_GATEWAY",
+            "metadata": {
+                "description": "Specifies the name of the Application Gateway."
+            }
+        },
+        "agwRgName": {
+            "type": "string",
+            "defaultValue": "APPLICATION_GATEWAY_RESOURCE_GROUP_NAME",
+            "metadata": {
+                "description": "Rg Name where Application GW is located"
+            }
+        }
+
+
+
+    },
+    "variables": {
+        "vnetID": "[resourceId(parameters('vnetSubscriptionId'), parameters('vnetResourceGroup'), 'Microsoft.Network/VirtualNetworks', parameters('vnetName'))]",
+        "nodeSubnetID": "[concat(variables('vnetID'), '/subnets/SUBNET_NAME_FOR_KUBE')]",
+        "podSubnetID": "[concat(variables('vnetID'), '/subnets/SUBNET_NAME_FOR_POD')]",
+        "applicationGatewayId": "[resourceId(parameters('agwRgName'),'Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
+        "clusterInfrastructureRG": "[concat(parameters('clusterRGName'), '_', parameters('managedClusterName'), '_uksouth')]"
+
+    },
+    "resources": [
+
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2023-08-02-preview",
+            "name": "[parameters('managedClusterName')]",
+            "location": "uksouth",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedManagedIdentityName'))]": {}
+                }
+            },
+            "tags": {
+                "tag1": "DEMO POC"
+            },
+            "sku": "[parameters('clusterSku')]",
+            "properties": {
+                "kubernetesVersion": "1.27.7",
+                "dnsPrefix": "[concat(parameters('managedClusterName'), '-dns')]",
+                "identityProfile": {
+                    "kubeletidentity": {
+                        "resourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedManagedIdentityName'))]",
+                        "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',parameters('userAssignedManagedIdentityName')),'2018-11-30','Full').properties.clientId]",
+                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',parameters('userAssignedManagedIdentityName')),'2018-11-30','Full').properties.principalId]"
+                    }
+                },
+                "publicNetworkAccess": "Disabled",
+                "aadProfile": {
+                    "adminGroupObjectIds": [
+                        "ADMIN_ENTRA_GROUP_ID"
+                    ],
+                    "managed": true,
+                    "enableAzureRBAC": true,
+                    "tenantID": "[parameters('entraIdTenant')]"
+                },
+
+                "agentPoolProfiles": [
+                    {
+                        "name": "[tolower(parameters('systemNodePoolName'))]",
+                        "max-pods": 250,
+                        "count": "[parameters('agentCount')]",
+                        "vmSize": "[parameters('agentVMSize')]",
+                        "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+                        "orchestratorVersion": "1.27.7",
+                        "enableNodePublicIP": false,
+                        "tags": "[parameters('clusterTags')]",
+                        "mode": "System",
+                        "osType": "Linux",
+                        "nodeLabels": "[parameters('systemNodePoolNodeLabels')]",
+                        "nodeTaints": "[parameters('systemNodePoolNodeTaints')]",
+                        "vnetSubnetID": "[variables('nodeSubnetID')]",
+                        "podSubnetID": "[variables('podSubnetID')]"
+                    },
+                    {
+                        "name": "[tolower(parameters('userNodePoolName'))]",
+                        "max-pods": 250,
+                        "count": "[parameters('agentCount')]",
+                        "vmSize": "[parameters('agentVMSize')]",
+                        "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+                        "orchestratorVersion": "1.27.7",
+                        "enableNodePublicIP": false,
+                        "tags": "[parameters('clusterTags')]",
+                        "mode": "User",
+                        "osType": "Linux",
+                        "nodeLabels": "[parameters('userNodePoolNodeLabels')]",
+                        "nodeTaints": "[parameters('userNodePoolNodeTaints')]",
+                        "vnetSubnetID": "[variables('nodeSubnetID')]",
+                        "podSubnetID": "[variables('podSubnetID')]"
+                    }
+
+                ],
+                "servicePrincipalProfile": {
+                    "clientId": "msi"
+                },
+                "addonProfiles": {
+                    "azureKeyvaultSecretsProvider": {
+                        "config": {
+                            "vaultName": "KEYVAULT_NAME_HERE",
+                            "tenantId": "ENTRA_TENANT_ID_HERE",
+                            "usePodIdentity": "true"
+                        },
+                        "enabled": true,
+                        "identity": {
+                            "resourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedManagedIdentityName'))]",
+                            "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',parameters('userAssignedManagedIdentityName')),'2018-11-30','Full').properties.clientId]",
+                            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',parameters('userAssignedManagedIdentityName')),'2018-11-30','Full').properties.principalId]"
+                        }
+                    },
+                    "azurepolicy": {
+                        "enabled": true
+                    },
+                    "httpApplicationRouting": {
+                        "enabled": true
+                    },
+                    "ingressApplicationGateway": {
+                        "config": {
+                            "applicationGatewayId": "[variables('applicationGatewayId')]"
+                        },
+                        "enabled": true,
+                        "identity": {
+                            "resourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedManagedIdentityName'))]",
+                            "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',parameters('userAssignedManagedIdentityName')),'2018-11-30','Full').properties.clientId]",
+                            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',parameters('userAssignedManagedIdentityName')),'2018-11-30','Full').properties.principalId]"
+                        }
+                    }
+                },
+                "linuxProfile": {
+                    "adminUsername": "[parameters('aksClusterAdminUsername')]",
+                    "ssh": {
+                        "publicKeys": [
+                            {
+                                "keyData": "[parameters('aksClusterSshPublicKey')]"
+                            }
+                        ]
+                    }
+                },
+                "nodeResourceGroup": "[variables('clusterInfrastructureRG')]",
+                "enableRBAC": true,
+                "supportPlan": "KubernetesOfficial",
+                "networkProfile": {
+                    "loadBalancerSku": "[parameters('loadBalancerSku')]",
+                    "networkPlugin": "[parameters('networkPlugin')]",
+                    "networkPolicy": "[parameters('networkPolicy')]",
+                    "serviceCidr": "[parameters('serviceCidr')]",
+                    "dnsServiceIP": "[parameters('dnsServiceIP')]",
+                    "outboundType": "[parameters('outboundType')]",
+                    "loadBalancerProfile": "[json('null')]"
+
+                },
+                "privateLinkResources": [
+                    {
+                        "id": "[concat(resourceId('Microsoft.ContainerService/managedClusters', parameters('managedClusterName')), '/privateLinkResources/management')]",
+                        "name": "management",
+                        "type": "Microsoft.ContainerService/managedClusters/privateLinkResources",
+                        "groupId": "management",
+                        "requiredMembers": [
+                            "management"
+                        ]
+                    }
+                ],
+                "apiServerAccessProfile": {
+                    "enablePrivateCluster": true,
+                    "privateDNSZone": "PRIVATE_DNS_ZONE_ID",
+                    "enablePrivateClusterPublicFQDN": false
+                },
+
+                "autoUpgradeProfile": {
+                    "upgradeChannel": "patch",
+                    "nodeOSUpgradeChannel": "NodeImage"
+                },
+                "disableLocalAccounts": true,
+                "securityProfile": {},
+                "storageProfile": {
+                    "diskCSIDriver": {
+                        "enabled": true,
+                        "version": "v1"
+                    },
+                    "fileCSIDriver": {
+                        "enabled": true
+                    },
+                    "snapshotController": {
+                        "enabled": true
+                    }
+                },
+                "oidcIssuerProfile": {
+                    "enabled": true
+                },
+                "workloadAutoScalerProfile": {},
+                "metricsProfile": {
+                    "costAnalysis": {
+                        "enabled": false
+                    }
+                }
+            }
+        }
+
+    ]
+}

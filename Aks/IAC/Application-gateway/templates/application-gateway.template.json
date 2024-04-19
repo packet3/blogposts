@@ -1,0 +1,285 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "appGatewayName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of Application Gateway"
+        }
+      },
+      "location": {
+        "type": "string",
+        "metadata": {
+          "description": "Location of Application Gateway"
+        }
+      },
+      "resourceTags": {
+        "type": "object",
+        "metadata": {
+          "description": "Resource tags for deployed resources."
+        }
+      },
+      "identityType": {
+        "type": "string",
+        "allowedValues": [
+          "None",
+          "SystemAssigned",
+          "SystemAssigned, UserAssigned",
+          "UserAssigned"
+        ],
+        "metadata": {
+          "description": "Type of Managed Identity Assigned"
+        }
+      },
+      "userAssignedIdentities": {
+        "type": "object",
+        "metadata": {
+          "description": "List of User Assigned Managed Identities"
+        }
+      },
+      "zones": {
+        "type": "array",
+        "metadata": {
+          "description": "Availability Zones"
+        }
+      },
+      "appGatewaySkuName": {
+        "type": "string",
+        "defaultValue": "WAF_v2",
+        "allowedValues": [
+          "Standard_Large",
+          "Standard_Medium",
+          "Standard_Small",
+          "Standard_v2",
+          "WAF_Large",
+          "WAF_Medium",
+          "WAF_v2"
+        ],
+        "metadata": {
+          "description": "Name of Application Gateway SKU"
+        }
+      },
+      "appGatewaySkuTier": {
+        "type": "string",
+        "defaultValue": "WAF_v2",
+        "allowedValues": [
+          "Standard",
+          "Standard_v2",
+          "WAF",
+          "WAF_v2"
+        ],
+        "metadata": {
+          "description": "Tier of Application Gateway"
+        }
+      },
+      "autoScaleMax": {
+        "type": "int",
+        "metadata": {
+          "description": "Maximum number of Application Gateway instances"
+        }
+      },
+      "autoScaleMin": {
+        "type": "int",
+        "metadata": {
+          "description": "Minimum number of Application Gateway instances"
+        }
+      },
+      "backendAddressPools": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of Backend address pool"
+        }
+      },
+      "backendHttpSettingsCollections": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of Backend HTTP setting collections"
+        }
+      },
+      "frontendIPConfigurations": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of Frontend IP Configurations"
+        }
+      },
+      "frontendPorts": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of Front End ports"
+        }
+      },
+      "gatewayIPConfigurationName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of Gateway IP Configuration"
+        }
+      },
+      "gatewayIPConfigurationSubnetID": {
+        "type": "string",
+        "metadata": {
+          "description": "Resource ID of the Gateway IP Configuration subnet"
+        }
+      },
+      "httpListeners": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of of HTTP Listeners"
+        }
+      },
+      "sslCertificates": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of of SSL Certificates"
+        }
+      },
+     "probes": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of of Probes"
+        }
+      },
+      "requestRoutingRules": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of Request Routing Rules"
+        }
+      },
+  
+      "redirectConfigurations": {
+        "type": "array",
+        "metadata": {
+          "description": "Properties of Redirect Configurations"
+        }
+      },
+      "sslPolicyType": {
+        "type": "string",
+        "allowedValues": [
+          "Custom",
+          "CustomV2",
+          "Predefined"
+        ],
+        "defaultValue": "Custom",
+        "metadata": {
+          "description": "SSL Policy Type"
+        }
+      },
+      "minProtocolVersion": {
+        "type": "string",
+        "allowedValues": [
+          "TLSv1_2",
+          "TLSv1_3"
+        ],
+        "defaultValue": "TLSv1_2",
+        "metadata": {
+          "description": "Minimum Protocol Version Required"
+        }
+      },
+      "cipherSuites": {
+        "type": "array",
+        "metadata": {
+          "description": "Allowed Cipher Suites"
+        }
+      },
+      "webapplicationfirewallConfigurationProperties": {
+        "type": "object",
+        "metadata": {
+          "description": "Properties of the Web Application Firewall Configuration"
+        }
+      }
+    
+     
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Network/applicationGateways",
+        "apiVersion": "2022-07-01",
+        "name": "[parameters('appGatewayName')]",
+        "location": "[parameters('location')]",
+        "tags": "[parameters('resourceTags')]",
+        "identity": {
+          "type": "[parameters('identityType')]",
+          "userAssignedIdentities": "[parameters('userAssignedIdentities')]"
+        },
+        "zones": "[parameters('zones')]",
+        "properties": {
+          "sku": {
+            "name": "[parameters('appGatewaySkuName')]",
+            "tier": "[parameters('appGatewaySkuTier')]"
+          },
+          "autoscaleConfiguration": {
+            "maxCapacity": "[parameters('autoScaleMax')]",
+            "minCapacity": "[parameters('autoScaleMin')]"
+          },
+          "copy": [
+            {
+              "name": "backendAddressPools",
+              "count": "[length(parameters('backendAddressPools'))]",
+              "input": "[parameters('backendAddressPools')[copyIndex('backendAddressPools')]]"
+            },
+            {
+              "name": "backendHttpSettingsCollection",
+              "count": "[length(parameters('backendHttpSettingsCollections'))]",
+              "input": "[parameters('backendHttpSettingsCollections')[copyIndex('backendHttpSettingsCollection')]]"
+            },
+            {
+              "name": "frontendIPConfigurations",
+              "count": "[length(parameters('frontendIPConfigurations'))]",
+              "input": "[parameters('frontendIPConfigurations')[copyIndex('frontendIPConfigurations')]]"
+            },
+            {
+              "name": "frontendPorts",
+              "count": "[length(parameters('frontendPorts'))]",
+              "input": "[parameters('frontendPorts')[copyIndex('frontendPorts')]]"
+            },
+            {
+              "name": "httpListeners",
+              "count": "[length(parameters('httpListeners'))]",
+              "input": "[parameters('httpListeners')[copyIndex('httpListeners')]]"
+            },
+            {
+              "name": "sslCertificates",
+              "count": "[length(parameters('sslCertificates'))]",
+              "input": "[parameters('sslCertificates')[copyIndex('sslCertificates')]]"
+            },
+            {
+              "name": "probes",
+              "count": "[length(parameters('probes'))]",
+              "input": "[parameters('probes')[copyIndex('probes')]]"
+            },
+            {
+              "name": "requestRoutingRules",
+              "count": "[length(parameters('requestRoutingRules'))]",
+              "input": "[parameters('requestRoutingRules')[copyIndex('requestRoutingRules')]]"
+            },
+         
+            {
+              "name": "redirectConfigurations",
+              "count": "[length(parameters('redirectConfigurations'))]",
+              "input": "[parameters('redirectConfigurations')[copyIndex('redirectConfigurations')]]"
+            }
+          ],
+          "sslPolicy": {
+            "policyType": "[parameters('sslPolicyType')]",
+            "minProtocolVersion": "[parameters('minProtocolVersion')]",
+            "cipherSuites": "[parameters('cipherSuites')]"
+          },
+          "gatewayIPConfigurations": [
+            {
+              "name": "[parameters('gatewayIPConfigurationName')]",
+              "properties": {
+                "subnet": {
+                  "id": "[parameters('gatewayIPConfigurationSubnetID')]"
+                }
+              }
+            }
+          ],
+          "webApplicationFirewallConfiguration": "[parameters('webapplicationfirewallConfigurationProperties')]"
+        
+        }
+      
+      }
+    ]
+  }
+  
