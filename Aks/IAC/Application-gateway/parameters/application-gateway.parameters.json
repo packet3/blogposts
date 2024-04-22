@@ -3,17 +3,18 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "appGatewayName": {
-            "value": "APPLICATION_GATEWAY_NAME"
+            "value": "APP_GATEWAY_NAME"
         },
         "location": {
             "value": "uksouth"
         },
         "resourceTags": {
             "value": {
-                "Environment": "DEV",
+                "Environment": "TAG1",
                 "Application": "TESTING",
                 "Tier": "3",
-                "Department": "JOE"
+                "Department": "TAG3",
+                "Cost Centre": "N/A"
             }
         },
         "identityType": {
@@ -21,7 +22,7 @@
         },
         "userAssignedIdentities": {
             "value": {
-                "USER_ASSIGNED_MANAGED_ID": {}
+                "": {}
             }
         },
         "zones": {
@@ -52,7 +53,52 @@
             ]
         },
         "backendHttpSettingsCollections": {
-            "value": []
+            "value": [
+                {
+                    "name": "bp-default-aspnetapp443-443-8080-aspnetapp443",
+                    "properties": {
+                        "port": 8080,
+                        "protocol": "Https",
+                        "cookieBasedAffinity": "Disabled",
+                        "hostName": "backend",
+                        "pickHostNameFromBackendAddress": false,
+                        "requestTimeout": 30,
+                        "probe": {
+                            "id": "/subscriptions/SUB_ID/resourceGroups/rg-agw-lza-waf-sbx-uks-1/providers/Microsoft.Network/applicationGateways/agw-lza-waf-sbx-uks-1/probes/pb-default-aspnetapp443-443-aspnetapp443"
+                        }
+                    }
+                },
+                {
+                    "name": "agw-hts-80-sbx-default",
+                    "properties": {
+                        "cookieBasedAffinity": "disabled",
+                        "path": "/",
+                        "port": 80,
+                        "probe": {
+                            "id": "/subscriptions/SUB_ID/resourceGroups/rg-agw-lza-waf-sbx-uks-1/providers/Microsoft.Network/applicationGateways/agw-lza-waf-sbx-uks-1/probes/agw-prb-sbx-defaultprobe-Http"
+                        },
+                        "protocol": "Http",
+                        "requestTimeout": 60,
+                        "pickHostNameFromBackendAddress": false,
+                        "probeEnabled": true
+                    }
+                },
+                {
+                    "name": "agw-hts-443-sbx-default",
+                    "properties": {
+                        "cookieBasedAffinity": "disabled",
+                        "path": "/",
+                        "port": 443,
+                        "probe": {
+                            "id": "/subscriptions/SUB_ID/resourceGroups/rg-agw-lza-waf-sbx-uks-1/providers/Microsoft.Network/applicationGateways/agw-lza-waf-sbx-uks-1/probes/agw-prb-sbx-defaultprobe-Https"
+                        },
+                        "protocol": "Https",
+                        "requestTimeout": 300,
+                        "pickHostNameFromBackendAddress": false,
+                        "probeEnabled": true
+                    }
+                }
+            ]
         },
         "frontendIPConfigurations": {
             "value": [
@@ -61,7 +107,7 @@
                     "properties": {
                         "privateIPAllocationMethod": "Dynamic",
                         "publicIPAddress": {
-                            "id": "FRONT_END_IP_RESOURCE_ID"
+                            "id": "/subscriptions/SUB_ID/resourceGroups/rg-aks-lza-radbase-sbx-uks-1/providers/Microsoft.Network/publicIPAddresses/agw-pub-feip"
                         }
                     }
                 }
@@ -87,7 +133,169 @@
             "value": "agw-ipc"
         },
         "gatewayIPConfigurationSubnetID": {
-            "value": "GATEWAY_SUBNET_ID"
+            "value": "/subscriptions/SUB_ID/resourceGroups/rg-vnw-lza-dev-uks-1/providers/Microsoft.Network/virtualNetworks/vnw-lza-dev-uks-1/subnets/snw-vnw-lza-dev-uks-1-waf-1"
+        },
+        "httpListeners": {
+            "value": [
+                {
+                    "name": "fl-1c526ee8ba68b3db940684e9093980ad",
+                    "properties": {
+                        "frontendIPConfiguration": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/frontendIPConfigurations/agw-pub-feip')]"
+                        },
+                        "frontendPort": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/frontendPorts/agw-fep-443')]"
+                        },
+                        "protocol": "Https",
+                        "sslCertificate": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/sslCertificates/agf-fe-ssl-sbx-aks')]"
+                        },
+                        "hostNames": [],
+                        "requireServerNameIndication": false
+                    }
+                },
+                {
+                    "name": "fl-452c578b4f742bd7a3927c3caf2b604e",
+                    "properties": {
+                        "frontendIPConfiguration": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/frontendIPConfigurations/agw-pub-feip')]"
+                        },
+                        "frontendPort": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/frontendPorts/agw-fep-80')]"
+                        },
+                        "protocol": "Http",
+                        "hostNames": [],
+                        "requireServerNameIndication": false
+                    }
+                }
+            ]
+        },
+        "sslCertificates": {
+            "value": [
+                {
+                    "name": "agf-fe-ssl-sbx-aks",
+                    "properties": {
+                        "keyVaultSecretId": "https://KV_VAULT_NAME.vault.azure.net/secrets/aks-test",
+                        "password": ""
+                    }
+                }
+            ]
+        },
+        "probes": {
+            "value": [
+                {
+                    "name": "agw-prb-sbx-defaultprobe-Http",
+                    "properties": {
+                        "backendHttpSettings": [
+                            {
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/backendHttpSettingsCollection/agw-hts-80-sbx-default')]"
+                            }
+                        ],
+                        "protocol": "Http",
+                        "host": "localhost",
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 30,
+                        "unhealthyThreshold": 3,
+                        "pickHostNameFromBackendHttpSettings": false,
+                        "minServers": 0,
+                        "match": {}
+                    }
+                },
+                {
+                    "name": "agw-prb-sbx-defaultprobe-Https",
+                    "properties": {
+                        "backendHttpSettings": [
+                            {
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/backendHttpSettingsCollection/agw-hts-443-sbx-default')]"
+                            }
+                        ],
+                        "protocol": "Https",
+                        "host": "localhost",
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 30,
+                        "unhealthyThreshold": 3,
+                        "pickHostNameFromBackendHttpSettings": false,
+                        "minServers": 0,
+                        "match": {}
+                    }
+                },
+                {
+                    "name": "pb-default-aspnetapp443-443-aspnetapp443",
+                    "properties": {
+                        "backendHttpSettings": [
+                            {
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/backendHttpSettingsCollection/bp-default-aspnetapp443-443-8080-aspnetapp443')]"
+                            }
+                        ],
+                        "protocol": "Https",
+                        "host": "backend",
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 30,
+                        "unhealthyThreshold": 3,
+                        "pickHostNameFromBackendHttpSettings": false,
+                        "minServers": 0,
+                        "match": {}
+                    }
+                }
+            ]
+        },
+        "requestRoutingRules": {
+            "value": [
+                {
+                    "name": "rr-1c526ee8ba68b3db940684e9093980ad",
+                    "properties": {
+                        "ruleType": "Basic",
+                        "priority": 19500,
+                        "httpListener": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/httpListeners/fl-1c526ee8ba68b3db940684e9093980ad')]"
+                        },
+                        "backendAddressPool": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/backendAddressPools/agw-bep-sbx-aks')]"
+                        },
+                        "backendHttpSettings": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/backendHttpSettingsCollection/bp-default-aspnetapp443-443-8080-aspnetapp443')]"
+                        }
+                    }
+                },
+                {
+                    "name": "rr-452c578b4f742bd7a3927c3caf2b604e",
+                    "properties": {
+                        "ruleType": "Basic",
+                        "priority": 19505,
+                        "httpListener": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/httpListeners/fl-452c578b4f742bd7a3927c3caf2b604e')]"
+                        },
+                        "redirectConfiguration": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/redirectConfigurations/sslr-fl-1c526ee8ba68b3db940684e9093980ad')]"
+                        }
+                    }
+                }
+            ]
+        },
+        "redirectConfigurations": {
+            "value": [
+                {
+                    "name": "sslr-fl-1c526ee8ba68b3db940684e9093980ad",
+                     
+                    
+                    "properties": {
+                        "redirectType": "Permanent",
+                        "targetListener": {
+                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/httpListeners/fl-1c526ee8ba68b3db940684e9093980ad')]"
+                        },
+                        "includePath": true,
+                        "includeQueryString": true,
+                        "requestRoutingRules": [
+                            {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('appGatewayName')), '/requestRoutingRules/rr-452c578b4f742bd7a3927c3caf2b604e')]"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         "sslPolicyType": {
             "value": "Custom"
@@ -113,5 +321,7 @@
                 "fileUploadLimitInMb": 100
             }
         }
+      
+      
     }
 }
